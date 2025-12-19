@@ -130,7 +130,7 @@ python manage.py test
 
 Ожидаемый результат:
 ```
-Ran 4 tests in X.XXXs
+Ran 5 tests in X.XXXs
 
 OK
 ```
@@ -157,6 +157,55 @@ OK
   Authorization: Bearer <токен>
   ```
 - Токен действителен до перезапуска сервера (можно добавить `exp` при необходимости).
+---
+---
+## 🧪 Примеры запросов
+
+### Регистрация
+```bash
+curl -X POST http://127.0.0.1:8000/api/auth/register/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@test.com",
+    "password": "123456",
+    "password_repeat": "123456",
+    "first_name": "Иван",
+    "last_name": "Иванов"
+  }'
+```
+
+### Логин
+```bash
+curl -X POST http://127.0.0.1:8000/api/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"secure_password_123"}'
+```
+
+### Доступ к продуктам
+```bash
+curl -H "Authorization: Bearer <ваш_токен>" \
+  http://127.0.0.1:8000/api/products/
+```
+### Обновление профиля
+```bash
+curl -X PATCH http://127.0.0.1:8000/api/auth/profile/ \
+  -H "Authorization: Bearer <ваш_токен>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "first_name": "Новое Имя",
+    "email": "newemail@example.com"
+  }'
+```
+
+### Успешный ответ (200 OK):
+```bash
+{
+  "email": "newemail@example.com",
+  "first_name": "Новое Имя",
+  "last_name": "Иванов",
+  "middle_name": ""
+}
+```
 
 ---
 
