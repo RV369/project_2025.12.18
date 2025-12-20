@@ -1,6 +1,6 @@
 import jwt
 from django.conf import settings
-from drf_spectacular.utils import OpenApiExample, extend_schema
+from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -9,23 +9,12 @@ from core.permissions import check_permission
 from core.serializers import (AccessRuleSerializer, RegisterSerializer,
                               UserUpdateSerializer)
 
-product_example = OpenApiExample(
-    'Пример продукта',
-    value={'id': 1, 'name': 'Laptop', 'owner_id': 1},
-    response_only=True,
-)
-MOCK_PRODUCTS = [
-    {'id': 1, 'name': 'Laptop', 'owner_id': 1},
-    {'id': 2, 'name': 'Phone', 'owner_id': 2},
-]
-
 
 @extend_schema(
     request=RegisterSerializer,
-    responses={
-        201: {'type': 'object', 'properties': {'message': {'type': 'string'}}},
-    },
+    responses=settings.USER_RESPONSES_SCHEMA_201,
     description='Регистрация нового пользователя',
+    tags=['Аутентификация'],
 )
 @api_view(['POST'])
 def register(request):
@@ -39,23 +28,9 @@ def register(request):
 
 
 @extend_schema(
-    summary='Вход в систему',
-    description='Аутентифицирует пользователя по email и паролю. '
-    'Возвращает JWT-токен.',
-    request={
-        'application/json': {
-            'type': 'object',
-            'properties': {
-                'email': {'type': 'string', 'format': 'email'},
-                'password': {'type': 'string'},
-            },
-            'required': ['email', 'password'],
-        },
-    },
-    responses={
-        200: {'type': 'object', 'properties': {'token': {'type': 'string'}}},
-        401: {'type': 'object', 'properties': {'error': {'type': 'string'}}},
-    },
+    request=settings.USER_REQUEST_SCHEMA,
+    responses=settings.USER_RESPONSES_SCHEMA,
+    examples=settings.EXAMPLES_LOGIN,
     tags=['Аутентификация'],
 )
 @api_view(['POST'])
@@ -79,7 +54,7 @@ def login(request):
         return Response({'error': 'Invalid credentials'}, status=401)
 
 
-@extend_schema(tags=['Выход из  системы'])
+@extend_schema(tags=['Аутентификация'])
 @api_view(['POST'])
 def logout(request):
     if not request.user:
@@ -87,7 +62,12 @@ def logout(request):
     return Response({'message': 'Logged out'})
 
 
-@extend_schema(tags=['Обновление профиля'])
+@extend_schema(
+    request=UserUpdateSerializer,
+    responses=settings.USER_RESPONSES_SCHEMA_201,
+    description='Обновление профиля пользователя',
+    tags=['Аутентификация'],
+)
 @api_view(['PATCH'])
 def update_profile(request):
     """
@@ -96,7 +76,6 @@ def update_profile(request):
     """
     if not request.user:
         return Response({'error': 'Authentication required'}, status=401)
-
     serializer = UserUpdateSerializer(
         request.user,
         data=request.data,
@@ -108,7 +87,7 @@ def update_profile(request):
     return Response(serializer.errors, status=400)
 
 
-@extend_schema(tags=['Удаление аккаунта'])
+@extend_schema(tags=['Аутентификация'])
 @api_view(['DELETE'])
 def delete_account(request):
     if not request.user:
@@ -120,20 +99,9 @@ def delete_account(request):
 
 
 @extend_schema(
-    responses={
-        200: {
-            'type': 'array',
-            'items': {
-                'type': 'object',
-                'properties': {
-                    'id': {'type': 'integer'},
-                    'name': {'type': 'string'},
-                    'owner_id': {'type': 'integer'},
-                },
-            },
-        },
-    },
-    examples=[product_example],
+    responses={200: settings.PRODUCT_SCHEMA},
+    description='Список доступных продуктов',
+    tags=['Продукты'],
 )
 @api_view(['GET', 'POST'])
 def products_list(request):
@@ -159,7 +127,7 @@ def products_list(request):
         if not can_read:
             return Response({'error': 'Access denied'}, status=403)
         result = []
-        for p in MOCK_PRODUCTS:
+        for p in settings.MOCK_PRODUCTS:
             try:
                 check_permission(user, element_name, 'read', p['owner_id'])
                 result.append(p)
@@ -171,13 +139,20 @@ def products_list(request):
         return Response({'message': 'Product created'}, status=201)
 
 
+@extend_schema(
+    responses={200: settings.PRODUCT_SCHEMA},
+    description='Список доступных продуктов',
+    tags=['Продукты'],
+)
 @api_view(['PUT', 'DELETE'])
 def product_detail(request, product_id):
     if not request.user:
         return Response({'error': 'Authentication required'}, status=401)
     element_name = 'products'
     try:
-        product = next(p for p in MOCK_PRODUCTS if p['id'] == int(product_id))
+        product = next(
+            p for p in settings.MOCK_PRODUCTS if p['id'] == int(product_id)
+        )
     except StopIteration:
         return Response({'error': 'Not found'}, status=404)
     owner_id = product['owner_id']
@@ -189,7 +164,7 @@ def product_detail(request, product_id):
         return Response({'message': 'Product deleted'})
 
 
-@extend_schema(tags=['Роли пользователей'])
+@extend_schema(tags=['Администрирование'])
 @api_view(['GET', 'POST'])
 def access_rules(request):
     if not request.user:

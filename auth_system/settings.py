@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+from drf_spectacular.utils import OpenApiExample
 
 load_dotenv()
 
@@ -101,9 +102,53 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Система аутентификации и авторизации API',
-    'DESCRIPTION': 'Кастомная система управления доступом с ролями'
-    ' и гранулярными правами',
+    'TITLE': 'API системы',
+    'DESCRIPTION': 'Кастомная аутентификация и авторизация',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+MOCK_PRODUCTS = [
+    {'id': 1, 'name': 'Laptop', 'owner_id': 1},
+    {'id': 2, 'name': 'Phone', 'owner_id': 2},
+]
+PRODUCT_SCHEMA = {
+    'type': 'array',
+    'items': {
+        'type': 'object',
+        'properties': {
+            'id': {'type': 'integer'},
+            'name': {'type': 'string'},
+            'owner_id': {'type': 'integer'},
+        },
+    },
+}
+USER_REQUEST_SCHEMA = {
+    'application/json': {
+        'type': 'object',
+        'properties': {
+            'email': {'type': 'string', 'format': 'email'},
+            'password': {'type': 'string', 'minLength': 6},
+        },
+        'required': ['email', 'password'],
+    },
+}
+USER_RESPONSES_SCHEMA = {
+    200: {'type': 'object', 'properties': {'token': {'type': 'string'}}},
+    401: {'type': 'object', 'properties': {'error': {'type': 'string'}}},
+}
+USER_RESPONSES_SCHEMA_201 = {
+    201: {'type': 'object', 'properties': {'message': {'type': 'string'}}},
+}
+EXAMPLES_LOGIN = [
+    OpenApiExample(
+        'Успешный вход',
+        value={'email': 'admin@myapp.com', 'password': 'my_secure_pass'},
+        request_only=True,
+    ),
+    OpenApiExample(
+        'Ответ при успехе',
+        value={'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'},
+        response_only=True,
+    ),
+]
