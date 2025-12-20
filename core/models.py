@@ -1,9 +1,8 @@
 import bcrypt
-from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-class CustomUser(AbstractUser):
+class CustomUser(models.Model):
     email = models.EmailField(unique=True)
     password_hash = models.CharField(max_length=128)
     first_name = models.CharField(max_length=100)
