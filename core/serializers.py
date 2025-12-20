@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
-from core.models import AccessRule, Role, User, UserRole
+from core.models import AccessRule, CustomUser, Role, UserRole
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = CustomUser
         fields = ['id', 'email', 'first_name', 'last_name', 'middle_name']
         read_only_fields = ['id']
 
@@ -35,7 +35,7 @@ class RegisterSerializer(serializers.Serializer):
     def create(self, validated_data):
         password = validated_data.pop('password')
         validated_data.pop('password_repeat', None)
-        user = User(**validated_data)
+        user = CustomUser(**validated_data)
         user.set_password(password)
         user.save()
         user_role, created = Role.objects.get_or_create(
@@ -48,7 +48,7 @@ class RegisterSerializer(serializers.Serializer):
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = CustomUser
         fields = ['email', 'first_name', 'last_name', 'middle_name']
         extra_kwargs = {
             'email': {'required': False},
@@ -59,7 +59,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
         if (
-            User.objects.filter(email=value)
+            CustomUser.objects.filter(email=value)
             .exclude(id=self.instance.id)
             .exists()
         ):

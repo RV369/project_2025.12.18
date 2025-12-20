@@ -1,8 +1,9 @@
 import bcrypt
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-class User(models.Model):
+class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     password_hash = models.CharField(max_length=128)
     first_name = models.CharField(max_length=100)
@@ -51,7 +52,7 @@ class BusinessElement(models.Model):
 
 
 class UserRole(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
 
     class Meta:

@@ -2,7 +2,7 @@ import jwt
 from django.conf import settings
 from django.utils.deprecation import MiddlewareMixin
 
-from .models import User
+from .models import CustomUser
 
 
 class AuthMiddleware(MiddlewareMixin):
@@ -20,9 +20,12 @@ class AuthMiddleware(MiddlewareMixin):
                 user_id = payload.get('user_id')
                 if user_id:
                     try:
-                        user = User.objects.get(id=user_id, is_active=True)
+                        user = CustomUser.objects.get(
+                            id=user_id,
+                            is_active=True,
+                        )
                         request.user = user
-                    except User.DoesNotExist:
+                    except CustomUser.DoesNotExist:
                         pass
             except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
                 pass

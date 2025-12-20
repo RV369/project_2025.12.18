@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from core.models import Role, User, UserRole
+from core.models import CustomUser, Role, UserRole
 
 
 class Command(BaseCommand):
@@ -17,7 +17,7 @@ class Command(BaseCommand):
             name='admin',
             defaults={'description': 'Администратор'},
         )
-        user = User.objects.create(
+        user = CustomUser.objects.create(
             email=options['email'],
             first_name=options['first_name'],
             last_name=options['last_name'],

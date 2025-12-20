@@ -2,7 +2,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import User
+from core.models import CustomUser
 
 
 class AuthBasicTests(TestCase):
@@ -20,7 +20,9 @@ class AuthBasicTests(TestCase):
         }
         response = self.client.post('/api/auth/register/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(User.objects.filter(email='test@example.com').exists())
+        self.assertTrue(
+            CustomUser.objects.filter(email='test@example.com').exists(),
+        )
 
     def test_register_password_mismatch(self):
         """Пароли не совпадают HTTP_400_BAD_REQUEST"""
@@ -36,7 +38,7 @@ class AuthBasicTests(TestCase):
 
     def test_login_invalid_credentials(self):
         """Неверный пароль HTTP_401_UNAUTHORIZED"""
-        user = User.objects.create(
+        user = CustomUser.objects.create(
             email='wrong@test.com',
             first_name='Wrong',
             last_name='User',
@@ -52,7 +54,7 @@ class AuthBasicTests(TestCase):
 
     def test_delete_account(self):
         """Удаление аккаунта (мягкое) TTP_200_OK + is_active=False"""
-        user = User.objects.create(
+        user = CustomUser.objects.create(
             email='delete@test.com',
             first_name='Delete',
             last_name='Me',
@@ -72,7 +74,7 @@ class AuthBasicTests(TestCase):
         self.assertFalse(user.is_active)
 
     def test_update_profile(self):
-        user = User.objects.create(
+        user = CustomUser.objects.create(
             email='old@test.com',
             first_name='Old',
             last_name='User',

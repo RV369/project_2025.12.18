@@ -4,7 +4,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from core.models import AccessRule, BusinessElement, User, UserRole
+from core.models import AccessRule, BusinessElement, CustomUser, UserRole
 from core.permissions import check_permission
 from core.serializers import (AccessRuleSerializer, RegisterSerializer,
                               UserUpdateSerializer)
@@ -40,7 +40,7 @@ def login(request):
     email = request.data.get('email')
     password = request.data.get('password')
     try:
-        user = User.objects.get(email=email, is_active=True)
+        user = CustomUser.objects.get(email=email, is_active=True)
         if user.check_password(password):
             token = jwt.encode(
                 {'user_id': user.id},
@@ -50,7 +50,7 @@ def login(request):
             return Response({'token': token})
         else:
             return Response({'error': 'Invalid credentials'}, status=401)
-    except User.DoesNotExist:
+    except CustomUser.DoesNotExist:
         return Response({'error': 'Invalid credentials'}, status=401)
 
 
