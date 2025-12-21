@@ -6,15 +6,14 @@ from rest_framework.response import Response
 
 from core.models import AccessRule, BusinessElement, CustomUser, UserRole
 from core.permissions import check_permission
-from core.serializers import (AccessRuleSerializer, RegisterSerializer,
-                              UserUpdateSerializer)
+from core.serializers import RegisterSerializer, UserUpdateSerializer
 
 
 @extend_schema(
     request=RegisterSerializer,
     responses=settings.USER_RESPONSES_SCHEMA_201,
     description='Регистрация нового пользователя',
-    tags=['Аутентификация'],
+    tags=['Регистрация нового пользователя'],
 )
 @api_view(['POST'])
 def register(request):
@@ -54,7 +53,7 @@ def login(request):
         return Response({'error': 'Invalid credentials'}, status=401)
 
 
-@extend_schema(tags=['Аутентификация'])
+@extend_schema(tags=['Выход'])
 @api_view(['POST'])
 def logout(request):
     if not request.user:
@@ -66,7 +65,7 @@ def logout(request):
     request=UserUpdateSerializer,
     responses=settings.USER_RESPONSES_SCHEMA_201,
     description='Обновление профиля пользователя',
-    tags=['Аутентификация'],
+    tags=['Обновление профиля'],
 )
 @api_view(['PATCH'])
 def update_profile(request):
@@ -87,7 +86,7 @@ def update_profile(request):
     return Response(serializer.errors, status=400)
 
 
-@extend_schema(tags=['Аутентификация'])
+@extend_schema(tags=['Удаление профиля'])
 @api_view(['DELETE'])
 def delete_account(request):
     if not request.user:
@@ -162,22 +161,3 @@ def product_detail(request, product_id):
     elif request.method == 'DELETE':
         check_permission(request.user, element_name, 'delete', owner_id)
         return Response({'message': 'Product deleted'})
-
-
-@extend_schema(tags=['Администрирование'])
-@api_view(['GET', 'POST'])
-def access_rules(request):
-    if not request.user:
-        return Response({'error': 'Authentication required'}, status=401)
-    check_permission(request.user, 'access_rules', 'read')
-    if request.method == 'GET':
-        rules = AccessRule.objects.all()
-        serializer = AccessRuleSerializer(rules, many=True)
-        return Response(serializer.data)
-    elif request.method == 'POST':
-        check_permission(request.user, 'access_rules', 'create')
-        serializer = AccessRuleSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)

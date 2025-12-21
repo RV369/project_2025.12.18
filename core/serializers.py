@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import AccessRule, CustomUser, Role, UserRole
+from core.models import CustomUser, Role, UserRole
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -11,12 +11,6 @@ class UserSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-
-class AccessRuleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AccessRule
-        fields = '__all__'
 
 
 class RegisterSerializer(serializers.Serializer):

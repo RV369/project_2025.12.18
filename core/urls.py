@@ -14,5 +14,4 @@ urlpatterns = [
         views.product_detail,
         name='product_detail',
     ),
-    path('access-rules/', views.access_rules, name='access_rules'),
 ]
